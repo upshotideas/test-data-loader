@@ -103,7 +103,7 @@ public class TestDataLoader {
     private Map<String, String> generateTableSqls(LinkedHashMap<String, Path> orderedFiles) {
         return orderedFiles.entrySet().stream().map((Map.Entry<String, Path> e) -> {
             try {
-                List<String> fileLines = FileUtils.readLines(e.getValue().toFile(), Charset.defaultCharset());
+                List<String> fileLines = readFileLines(e);
                 if (fileLines.isEmpty()) {
                     return Arrays.asList(e.getKey(), "");
                 }
@@ -121,11 +121,37 @@ public class TestDataLoader {
         ));
     }
 
+    private static List<String> readFileLines(Map.Entry<String, Path> e) throws IOException {
+        return FileUtils.readLines(e.getValue().toFile(), Charset.defaultCharset());
+//        try (CSVParser csvParser = new CSVParser(new FileReader(e.getValue().toFile()), CSVFormat.DEFAULT);) {
+//            List<CSVRecord> fileLineRecords = csvParser.stream().collect(Collectors.toList());
+//            return fileLineRecords.stream().map(csvRecord -> {
+//                List<String> columns = csvRecord.stream()
+//                        .map(String::trim)
+//                        .map(TestDataLoader::quoteVal)
+//                        .collect(Collectors.toList());
+//                return String.join(",", columns);
+//            }).collect(Collectors.toList());
+//        }
+    }
+
+//    private static String quoteVal(String s) {
+//        String operableCol = s.replaceAll("\"?__sql__\"?", "");
+//        if (!StringUtils.isNumeric(operableCol)) {
+//            return operableCol.replaceAll("^\"", "'")
+//                    .replaceAll("\"$", "'");
+//        }
+//        return operableCol;
+//    }
+
     private static String formInsertStatement(String tableName, List<String> fileLines) {
         String columns = fileLines.remove(0);
 
         List<String> inserts = fileLines.stream()
-                .map(s -> s.replaceAll("\"?__sql__\"?", "").replaceAll("\"", "'"))
+                .map(s -> s.replaceAll("\"?__sql__\"?", "")
+                        .replaceAll("(?<!\")\"(?!\")", "'")
+                        .replaceAll("\"\"", "\"")
+                )
                 .map(row -> String.format("insert into %s(%s) values (%s);", tableName, columns, row))
                 .collect(Collectors.toList());
 

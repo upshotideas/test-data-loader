@@ -1,0 +1,2 @@
+col1,json_col,col3
+"some val","{ ""region"":  ""us-east-2"" }", 42

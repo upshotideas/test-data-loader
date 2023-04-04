@@ -23,3 +23,9 @@ create table second_table (
 create table third_table (
 	id bigserial primary key
 );
+
+create table fourth_table (
+    col1 varchar(255),
+    json_col json,
+	col3 double precision
+)

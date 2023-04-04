@@ -59,87 +59,87 @@ class TestDataLoaderTest {
     void shouldLoadTheData_WhenDataFileIsFound() throws SQLException {
         TestDataLoader dataLoader = new TestDataLoader(connection);
 
-        assertAll(() -> assertEquals(0, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
 
         dataLoader.loadTables();
 
-        assertAll(() -> assertEquals(1, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(1, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
     @Test
     void shouldClearTables_WhenInvoked() {
         TestDataLoader dataLoader = new TestDataLoader(connection);
         dataLoader.loadTables();
-        assertAll(() -> assertEquals(1, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(1, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
 
         dataLoader.clearTables();
-        assertAll(() -> assertEquals(0, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
     @Test
     void shouldLoadTheDataForSpecificTables_WhenDataFileIsFoundAndTablesAreDefined() throws SQLException {
         TestDataLoader dataLoader = new TestDataLoader(connection);
 
-        assertAll(() -> assertEquals(0, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
 
         dataLoader.loadTables(Arrays.asList("client"));
 
-        assertAll(() -> assertEquals(1, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
     @Test
     void shouldClearForSpecificTables_WhenITablesAreDefined() {
         TestDataLoader dataLoader = new TestDataLoader(connection);
         dataLoader.loadTables();
-        assertAll(() -> assertEquals(1, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(1, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
 
         dataLoader.clearTables(Arrays.asList("second_table"));
-        assertAll(() -> assertEquals(1, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
     @Test
     void shouldLoadTheDataForAllTables_TablesAreAnEmptyList() throws SQLException {
         TestDataLoader dataLoader = new TestDataLoader(connection);
 
-        assertAll(() -> assertEquals(0, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
 
         dataLoader.loadTables(Collections.emptyList());
 
-        assertAll(() -> assertEquals(1, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(1, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
     @Test
     void shouldClearForSpecificTables_TablesAreAnEmptyList() {
         TestDataLoader dataLoader = new TestDataLoader(connection);
         dataLoader.loadTables();
-        assertAll(() -> assertEquals(1, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(1, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
 
         dataLoader.clearTables(Collections.emptyList());
-        assertAll(() -> assertEquals(0, runQuery("select count(0) as count from client;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from second_table;")),
-                () -> assertEquals(0, runQuery("select count(0) as count from third_table;")));
+        assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
     @Test
@@ -154,20 +154,40 @@ class TestDataLoaderTest {
         );
     }
 
+    @Test
+    void shouldInsertJSONProperly() throws SQLException {
+        TestDataLoader dataLoader = new TestDataLoader(connection);
+        dataLoader.loadTables();
+
+        String actual = runQueryForSelectedStr("select json_col as selected_str from fourth_table;");
+        assertAll(() -> assertEquals("\"{ \\\"region\\\":  \\\"us-east-2\\\" }\"",
+                actual));
+    }
+
     private static Comparator<Path> getComparator() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Method prefixNumericComparatorGenerator = TestDataLoader.class.getDeclaredMethod("prefixNumericComparatorGenerator");
         prefixNumericComparatorGenerator.setAccessible(true);
-        Comparator<Path> prefixNumericComparator = (Comparator<Path>) prefixNumericComparatorGenerator.invoke(TestDataLoader.class);
-        return prefixNumericComparator;
+        return (Comparator<Path>) prefixNumericComparatorGenerator.invoke(TestDataLoader.class);
     }
 
 
-    private int runQuery(String sqlStmt) throws SQLException {
+    private int runQueryForCount(String sqlStmt) throws SQLException {
+        try (ResultSet resultSet = runQuery(sqlStmt);) {
+            return resultSet.getInt("count");
+        }
+    }
+
+    private ResultSet runQuery(String sqlStmt) throws SQLException {
         Statement statement = this.connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sqlStmt);
         resultSet.next();
-        return resultSet.getInt("count");
+        return resultSet;
     }
 
+    private String runQueryForSelectedStr(String sqlStmt) throws SQLException {
+        try (ResultSet resultSet = runQuery(sqlStmt);) {
+            return resultSet.getString("selected_str");
+        }
+    }
 
 }
