@@ -61,14 +61,16 @@ public class TestDataLoader {
     }
 
     public void clearTables() {
-        Stream<Map.Entry<String, String>> tables = this.tableSqls.entrySet().stream();
+        ArrayList<Map.Entry<String, String>> entries = new ArrayList<>(this.tableSqls.entrySet());
+        Collections.reverse(entries);
+        Stream<Map.Entry<String, String>> tables = entries.stream();
         clearData(tables);
     }
 
     private void clearData(Stream<Map.Entry<String, String>> tables) {
         tables.forEach(entry -> {
             try {
-                this.connection.createStatement().executeUpdate("truncate table " + entry.getKey() + ";");
+                this.connection.createStatement().executeUpdate("delete from " + entry.getKey() + ";");
                 this.connection.commit();
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);

@@ -27,5 +27,6 @@ create table third_table (
 create table fourth_table (
     col1 varchar(255),
     json_col json,
-	col3 double precision
+	col3 double precision,
+	col4_str varchar(255)
 )

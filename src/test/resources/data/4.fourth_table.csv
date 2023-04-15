@@ -1,2 +1,2 @@
-col1,json_col,col3
-"some val","{ ""region"":  ""us-east-2"" }", 42
+col1,json_col,col3,col4_str
+"some val","{ ""region"":  ""us-east-2"" }", 42, "select true as health, ''haha'' as some_data; "
