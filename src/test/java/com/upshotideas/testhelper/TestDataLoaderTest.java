@@ -6,6 +6,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,9 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestDataLoaderTest {
-
-    private Connection connection;
+class TestDataLoaderTest extends TestHelper {
 
     @BeforeEach
     public void setupDb()
@@ -55,9 +55,10 @@ class TestDataLoaderTest {
     }
 
 
-    @Test
-    void shouldLoadTheData_WhenDataFileIsFound() throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection);
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldLoadTheData_WhenDataFileIsFound(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
 
         assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
@@ -70,9 +71,10 @@ class TestDataLoaderTest {
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
-    @Test
-    void shouldClearTables_WhenInvoked() {
-        TestDataLoader dataLoader = new TestDataLoader(connection);
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldClearTables_WhenInvoked(String dataPath, OperatingMode operatingMode) {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
         dataLoader.loadTables();
         assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
@@ -84,9 +86,10 @@ class TestDataLoaderTest {
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
-    @Test
-    void shouldLoadTheDataForSpecificTables_WhenDataFileIsFoundAndTablesAreDefined() throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection);
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldLoadTheDataForSpecificTables_WhenDataFileIsFoundAndTablesAreDefined(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
 
         assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
@@ -99,9 +102,10 @@ class TestDataLoaderTest {
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
-    @Test
-    void shouldClearForSpecificTables_WhenITablesAreDefined() {
-        TestDataLoader dataLoader = new TestDataLoader(connection);
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldClearForSpecificTables_WhenITablesAreDefined(String dataPath, OperatingMode operatingMode) {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
         dataLoader.loadTables();
         assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
@@ -113,9 +117,10 @@ class TestDataLoaderTest {
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
-    @Test
-    void shouldLoadTheDataForAllTables_TablesAreAnEmptyList() throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection);
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldLoadTheDataForAllTables_TablesAreAnEmptyList(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
 
         assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
@@ -128,9 +133,10 @@ class TestDataLoaderTest {
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 
-    @Test
-    void shouldClearForSpecificTables_TablesAreAnEmptyList() {
-        TestDataLoader dataLoader = new TestDataLoader(connection);
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldClearForSpecificTables_TablesAreAnEmptyList(String dataPath, OperatingMode operatingMode) {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
         dataLoader.loadTables();
         assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
@@ -154,40 +160,14 @@ class TestDataLoaderTest {
         );
     }
 
-    @Test
-    void shouldInsertJSONProperly() throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection);
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldInsertJSONProperly(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
         dataLoader.loadTables();
 
         String actual = runQueryForSelectedStr("select json_col as selected_str from fourth_table;");
         assertAll(() -> assertEquals("\"{ \\\"region\\\":  \\\"us-east-2\\\" }\"",
                 actual));
     }
-
-    private static Comparator<Path> getComparator() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method prefixNumericComparatorGenerator = TestDataLoader.class.getDeclaredMethod("prefixNumericComparatorGenerator");
-        prefixNumericComparatorGenerator.setAccessible(true);
-        return (Comparator<Path>) prefixNumericComparatorGenerator.invoke(TestDataLoader.class);
-    }
-
-
-    private int runQueryForCount(String sqlStmt) throws SQLException {
-        try (ResultSet resultSet = runQuery(sqlStmt);) {
-            return resultSet.getInt("count");
-        }
-    }
-
-    private ResultSet runQuery(String sqlStmt) throws SQLException {
-        Statement statement = this.connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(sqlStmt);
-        resultSet.next();
-        return resultSet;
-    }
-
-    private String runQueryForSelectedStr(String sqlStmt) throws SQLException {
-        try (ResultSet resultSet = runQuery(sqlStmt);) {
-            return resultSet.getString("selected_str");
-        }
-    }
-
 }
