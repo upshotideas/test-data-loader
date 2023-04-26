@@ -1,9 +1,15 @@
 package com.upshotideas.testhelper;
 
+import io.deephaven.csv.CsvSpecs;
+import io.deephaven.csv.reading.CsvReader;
+import io.deephaven.csv.sinks.SinkFactory;
+import io.deephaven.csv.util.CsvReaderException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class TestDataLoader {
     private static final String DEFAULT_DATA_PATH = "src/test/resources/data";
@@ -105,15 +112,16 @@ public class TestDataLoader {
     private Map<String, String> generateTableSqls(LinkedHashMap<String, Path> orderedFiles) {
         return orderedFiles.entrySet().stream().map((Map.Entry<String, Path> e) -> {
             try {
-                List<String> fileLines = readFileLines(e);
-                if (fileLines.isEmpty()) {
+                Optional<String> optionalCols = Files.lines(e.getValue()).findFirst();
+                String cols = "";
+                if (optionalCols.isPresent()) {
+                    cols = optionalCols.get();
+                } else {
                     return Arrays.asList(e.getKey(), "");
                 }
-
-                String insertStmt = formInsertStatement(e.getKey(), fileLines);
-                return Arrays.asList(e.getKey(), insertStmt);
+                return Arrays.asList(e.getKey(), "insert into " + e.getKey() + "(" + cols + ") select * from CSVREAD('" + e.getValue() + "',null,'charset=UTF-8');");
             } catch (IOException ex) {
-                throw new TestDataLoaderException(ex);
+                throw new RuntimeException(ex);
             }
         }).collect(Collectors.toMap(
                 kv -> kv.get(0),
@@ -123,8 +131,54 @@ public class TestDataLoader {
         ));
     }
 
+//    private Map<String, String> generateTableSqls(LinkedHashMap<String, Path> orderedFiles) {
+//        return orderedFiles.entrySet().stream().map((Map.Entry<String, Path> e) -> {
+//            try {
+//                List<String> fileLines = readFileLines(e);
+//                if (fileLines.isEmpty()) {
+//                    return Arrays.asList(e.getKey(), "");
+//                }
+//
+//                String insertStmt = formInsertStatement(e.getKey(), fileLines);
+//                return Arrays.asList(e.getKey(), insertStmt);
+//            } catch (IOException ex) {
+//                throw new TestDataLoaderException(ex);
+//            }
+//        }).collect(Collectors.toMap(
+//                kv -> kv.get(0),
+//                kv -> kv.get(1),
+//                (k1, k2) -> k1,
+//                LinkedHashMap::new
+//        ));
+//    }
+
+/* TODO: why is this commented?
+
+    // This doesnt really help, we still need to detect the type after the quote/dynmic part of the sql is removed.
     private static List<String> readFileLines(Map.Entry<String, Path> e) throws IOException {
-        return FileUtils.readLines(e.getValue().toFile(), Charset.defaultCharset());
+        try (final InputStream inputStream = Files.newInputStream(e.getValue());) {
+            final CsvSpecs specs = CsvSpecs.csv();
+            final CsvReader.Result result = CsvReader.read(specs, inputStream, SinkFactory.arrays());
+            final long rowCount = result.numRows();
+            final long colCount = result.numCols();
+            final List<List<String>> table = new ArrayList();
+
+            StreamSupport.stream(result.spliterator(), false)
+                    .map(resultColumn -> {
+                        switch (resultColumn.dataType()) {
+                            case STRING:
+                                return quoteVal(String.valueOf(resultColumn.data()));
+                        }
+                    });
+
+            for (CsvReader.ResultColumn col : result) {
+
+            }
+
+        } catch (CsvReaderException ex) {
+            throw new RuntimeException(ex);
+        }
+
 //        try (CSVParser csvParser = new CSVParser(new FileReader(e.getValue().toFile()), CSVFormat.DEFAULT);) {
 //            List<CSVRecord> fileLineRecords = csvParser.stream().collect(Collectors.toList());
 //            return fileLineRecords.stream().map(csvRecord -> {
@@ -137,14 +191,38 @@ public class TestDataLoader {
 //        }
     }
 
-//    private static String quoteVal(String s) {
-//        String operableCol = s.replaceAll("\"?__sql__\"?", "");
-//        if (!StringUtils.isNumeric(operableCol)) {
-//            return operableCol.replaceAll("^\"", "'")
-//                    .replaceAll("\"$", "'");
-//        }
-//        return operableCol;
+
+    private static String quoteVal(String s) {
+        String operableCol = s.replaceAll("\"?__sql__\"?", "");
+        if (!StringUtils.isNumeric(operableCol)) {
+            return operableCol.replaceAll("^\"", "'")
+                    .replaceAll("\"$", "'");
+        }
+        return operableCol;
+    }
+*/
+//    private static List<String> readFileLines(Map.Entry<String, Path> e) throws IOException {
+//        return FileUtils.readLines(e.getValue().toFile(), Charset.defaultCharset());
+////        try (CSVParser csvParser = new CSVParser(new FileReader(e.getValue().toFile()), CSVFormat.DEFAULT);) {
+////            List<CSVRecord> fileLineRecords = csvParser.stream().collect(Collectors.toList());
+////            return fileLineRecords.stream().map(csvRecord -> {
+////                List<String> columns = csvRecord.stream()
+////                        .map(String::trim)
+////                        .map(TestDataLoader::quoteVal)
+////                        .collect(Collectors.toList());
+////                return String.join(",", columns);
+////            }).collect(Collectors.toList());
+////        }
 //    }
+//
+////    private static String quoteVal(String s) {
+////        String operableCol = s.replaceAll("\"?__sql__\"?", "");
+////        if (!StringUtils.isNumeric(operableCol)) {
+////            return operableCol.replaceAll("^\"", "'")
+////                    .replaceAll("\"$", "'");
+////        }
+////        return operableCol;
+////    }
 
     private static String formInsertStatement(String tableName, List<String> fileLines) {
         String columns = fileLines.remove(0);

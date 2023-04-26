@@ -1,2 +1,2 @@
-id, name, status, r_cre_id, r_cre_time, r_mod_id, r_mod_time
-0, 'someName', 'CREATED', "nikhil", '2023-02-27', 'nikhil', "__sql__NOW()__sql__"
+id,name,status,r_cre_id,r_cre_time,r_mod_id,r_mod_time
+0, 'someName', 'CREATED', "nikhil", 2023-02-27 00:00:00, 'nikhil', "2023-02-28"
