@@ -1,5 +1,7 @@
 package com.upshotideas.testhelper;
 
+import com.upshotideas.testhelper.filereader.IOperatingMode;
+import com.upshotideas.testhelper.filereader.OperatingModeFactory;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.IOException;
