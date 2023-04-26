@@ -34,7 +34,7 @@ class TestDataLoaderTest {
     public void setupDb()
     {
         try {
-            this.connection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;", "sa", null);
+            this.connection = DriverManager.getConnection("jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;", "sa", null);
             File createStmtFile = new File(TestDataLoaderTest.class.getClassLoader().getResource("createTables.sql").toURI());
             String createstmt = FileUtils.readFileToString(createStmtFile, Charset.defaultCharset());
 
