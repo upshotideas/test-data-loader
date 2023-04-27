@@ -12,15 +12,10 @@ import java.sql.Statement;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+import static com.upshotideas.testhelper.Functions.prefixNumericComparatorGenerator;
+
 public class TestHelper {
     protected Connection connection;
-
-    protected static Comparator<Path> getComparator() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method prefixNumericComparatorGenerator = TestDataLoader.class.getDeclaredMethod("prefixNumericComparatorGenerator");
-        prefixNumericComparatorGenerator.setAccessible(true);
-        return (Comparator<Path>) prefixNumericComparatorGenerator.invoke(TestDataLoader.class);
-    }
-
 
     protected int runQueryForCount(String sqlStmt) throws SQLException {
         try (ResultSet resultSet = runQuery(sqlStmt);) {

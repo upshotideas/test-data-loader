@@ -12,18 +12,18 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.*;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.upshotideas.testhelper.Functions.prefixNumericComparatorGenerator;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -151,8 +151,7 @@ class TestDataLoaderTest extends TestHelper {
     @Test
     void shouldOrderFilesInNaturalOrder() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         List<Path> paths = Arrays.asList(Paths.get("11.testfile3.csv"), Paths.get("10.testfile2.csv"), Paths.get("9.testfile.csv"));
-        Comparator<Path> prefixNumericComparator = getComparator();
-        List<Path> sorted = paths.stream().sorted(prefixNumericComparator).collect(Collectors.toList());
+        List<Path> sorted = paths.stream().sorted(prefixNumericComparatorGenerator()).collect(Collectors.toList());
 
         assertAll(() -> sorted.get(0).getFileName().equals("9.testfile.csv"),
                 () -> sorted.get(1).getFileName().equals("10.testfile2.csv"),
