@@ -51,9 +51,8 @@ public class ExampleTest {
    @Autowired private DataSource dataSource;
 
    @PostConstruct
-
    public void setUpClass() {
-      dataLoader = TestDataLoader(DataSourceUtils.getConnection(dataSource));
+      dataLoader = new TestDataLoader(DataSourceUtils.getConnection(dataSource));
    }
 
    @BeforeEach
