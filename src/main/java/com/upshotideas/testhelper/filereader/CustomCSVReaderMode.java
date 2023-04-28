@@ -10,6 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * This mode allows for some dynamic components to the CSV. One can embed SQL snippets in between __sql__ tags and 
+ * the generated insert statements will be such that they allow for executing these sqls, enabling some data to be
+ * dynamic.
+ * <p/>
+ * Since this is a custom method, there are some constraints this puts on the data's format; the data needs to be
+ * properly formatted, always enclosed in double quotes, if it is of type string.
+ */
 public class CustomCSVReaderMode implements IOperatingMode {
     @Override
     public List<String> generateTableSql(Map.Entry<String, Path> e) throws IOException {
