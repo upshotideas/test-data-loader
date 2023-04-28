@@ -7,8 +7,33 @@
     <groupId>com.upshotideas</groupId>
     <artifactId>test-data-loader</artifactId>
     <version>0.0.1</version>
+    <packaging>jar</packaging>
 
     <name>test-data-loader</name>
+    <description>A testing utility that loads data from provided csv files into a given database with a simple API.</description>
+    <url>https://github.com/upshotideas/test-data-loader</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Nikhil Wanpal</name>
+            <email>nikhil@upshotideas.com</email>
+            <organization>Upshot Ideas Technology Lab LLP</organization>
+            <organizationUrl>http://upshotideas.com/</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/upshotideas/test-data-loader.git</connection>
+        <developerConnection>scm:git:ssh://github.com:upshotideas/test-data-loader.git</developerConnection>
+        <url>https://github.com/upshotideas/test-data-loader/tree/main</url>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
