@@ -9,7 +9,7 @@
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
-    <name>test-data-loader</name>
+    <name>Test Data Loader</name>
     <description>A testing utility that loads data from provided csv files into a given database with a simple API.</description>
     <url>https://github.com/upshotideas/test-data-loader</url>
 
