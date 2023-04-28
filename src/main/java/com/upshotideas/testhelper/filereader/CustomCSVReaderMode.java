@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * Since this is a custom method, there are some constraints this puts on the data's format; the data needs to be
  * properly formatted, always enclosed in double quotes, if it is of type string.
  */
-public class CustomCSVReaderMode implements IOperatingMode {
+class CustomCSVReaderMode implements IOperatingMode {
     @Override
     public List<String> generateTableSql(Map.Entry<String, Path> e) throws IOException {
         List<String> fileLines = FileUtils.readLines(e.getValue().toFile(), Charset.defaultCharset());

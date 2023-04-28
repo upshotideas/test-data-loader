@@ -12,7 +12,7 @@ import static com.upshotideas.testhelper.Functions.getOrderedListOfFiles;
 /**
  * Loads all the available csv files located at a given path, ordered in declared order into given
  * DB using the given connection!
- * <p/>
+ * <p></p>
  * Exposes handy APIs to control how the data is loaded, removed, or reloaded, making it easy to test.
  */
 public class TestDataLoader {
@@ -22,9 +22,6 @@ public class TestDataLoader {
      */
     private final Connection connection;
 
-    /**
-     * Overrid
-     */
     private final String dataPath;
     private final OperatingMode operatingMode;
 
@@ -34,9 +31,9 @@ public class TestDataLoader {
      * Constructs the data loader with given connection, of any DB, unlike that of other constructors.
      * dataPath can be any directory, as long at is exists and is readable. It ideally should be in the test/resources/data
      * but any other accessible path can be used.
-     * <p/>
+     * <p></p>
      * If you are using H2 and the data files are in standard location, check other simpler constructors.
-     * <p/>
+     * <p></p>
      * @param connection: Expects an active connection to any DB, as long at is supports the regular insert statements!
      * @param dataPath: Expects the path to point to a directory.
      * @param operatingMode: Check ${@link OperatingMode} for available modes and their details.
@@ -70,6 +67,10 @@ public class TestDataLoader {
         this(connection, DEFAULT_DATA_PATH);
     }
 
+    /**
+     * Loads the csv data into tables. Assumes that the tables are already empty.
+     * Uses all CSV files (and therefore tables) available in the data directory.
+     */
     public void loadTables() {
         loadData(this.tableSqls.entrySet().stream());
     }
@@ -85,6 +86,12 @@ public class TestDataLoader {
         });
     }
 
+    /**
+     * Same as the ${@link #loadTables()} method but with an option to pass the subset of the tables to be loaded.
+     * This method expects the names of the tables and not the files.
+     *
+     * @param tables: note that this is a list of table names and not filenames.
+     */
     public void loadTables(List<String> tables) {
         if (tables.isEmpty()) {
             loadTables();
@@ -95,6 +102,9 @@ public class TestDataLoader {
         }
     }
 
+    /**
+     * Clears data from all the tables identified by the files in the data directory
+     */
     public void clearTables() {
         ArrayList<Map.Entry<String, String>> entries = new ArrayList<>(this.tableSqls.entrySet());
         Collections.reverse(entries);
@@ -113,6 +123,11 @@ public class TestDataLoader {
         });
     }
 
+    /**
+     * Same as the ${@link #clearTables()}, but additionally allows for clearing a subset of the tables.
+     *
+     * @param tables: note that this is a list of table names and not filenames.
+     */
     public void clearTables(List<String> tables) {
         if (tables.isEmpty()) {
             clearTables();
@@ -123,11 +138,19 @@ public class TestDataLoader {
         }
     }
 
+    /**
+     * Reloads data for all tables identified by the CSV files in the data directory.
+     */
     public void reloadTables() {
         this.clearTables();
         this.loadTables();
     }
 
+    /**
+     * Same as the ${@link #reloadTables()} but with option to reload data for only a subset of the tables.
+     *
+     * @param tables: note that this is a list of table names and not filenames.
+     */
     public void reloadTables(List<String> tables) {
         if (tables.isEmpty()) {
             reloadTables();

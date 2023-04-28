@@ -16,8 +16,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Functions for internal use.
+ */
 public class Functions {
 
+    /**
+     * Uses the operating mode to convert the identified list of files into insert statements.
+     */
     private static final Pattern FILE_ORDER = Pattern.compile("^(\\d+)\\.");
     static Map<String, String> generateTableSqls(LinkedHashMap<String, Path> orderedFiles, OperatingMode operatingMode) {
         IOperatingMode operatingModeHandler = OperatingModeFactory.getOperatingModeHandler(operatingMode);
