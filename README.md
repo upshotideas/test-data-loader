@@ -92,3 +92,37 @@ class ExampleTest(private val dataSource: DataSource) {
    // Tests go here!
 }
 ```
+
+## Operating Modes
+One can choose between two operating modes, which come with specific features and drawbacks!
+
+### H2_BUILT_IN mode
+The default mode, `H2_BUILT_IN` mode accepts standard, simple csv files. It relies on the H2 db's capability to
+load data from a csv. A typical CSV file when using this mode can look like:
+```csv
+client_id, display_name, some_type, created_by, created_at, modified_by, modified_at
+1, "some name", 'some type', "user", "2023-02-27", 'user', "2023-02-27"
+```
+This mode is directly using H2's `readcsv` function, and therefor is only available when using H2 database.
+If you are using any other database, like PostgreSQL, via docker for testing, you would have to use the custom mode.
+This mode will copy the CSV file as is, with no dymaic contents.
+
+### Custom mode
+Custom mode allows for using dynamic sql components to be used in the CSV, so they resolve when loading into
+the database. This is useful when using time based or relation based values as input. You can do things like:
+```csv
+client_id, display_name, some_type, created_by, created_at, modified_by, modified_at
+1, "some name", 'some type', "user", "__sql__NOW()__sql__", 'user', "__sql__NOW()__sql__"
+```
+The key here is wrapping the SQL in `__sql__` strings. The column is assumed to be of a
+string/varchar type and is processed by removing the `__sql__` markers.
+
+This mode can be used with any database, H2 or otherwise. But, getting the SQL right may seem a bit tricky,
+especially with quotes in them.
+
+### Data with Quotes or JSON
+You may need to escape quotes if the literal contains quotes, or if you are using json data. Here is an example:
+```csv
+literal_with_quotes, some_type, json_data
+"I have quotes ''haha'', see?", 'some type', "{ ""region"":  ""us-east-2"" }"
+```
