@@ -12,6 +12,13 @@ public class TestDataLoaderException extends RuntimeException {
     }
 
     /**
+     * Base constructor with message string
+     */
+    public TestDataLoaderException(String message) {
+        super(message);
+    }
+
+    /**
      * Allows for wrapping and rethrowing existing exceptions.
      * @param originalException whatever was the original cause.
      */

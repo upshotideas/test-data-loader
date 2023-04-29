@@ -1,5 +1,7 @@
 package com.upshotideas.testhelper;
 
+import lombok.Builder;
+
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,8 +24,8 @@ public class TestDataLoader {
      */
     private final Connection connection;
 
-    private final String dataPath;
-    private final OperatingMode operatingMode;
+    private String dataPath;
+    private OperatingMode operatingMode;
 
     private Map<String, String> tableSqls = Collections.emptyMap();
 
@@ -38,23 +40,27 @@ public class TestDataLoader {
      * @param dataPath: Expects the path to point to a directory.
      * @param operatingMode: Check ${@link OperatingMode} for available modes and their details.
      */
+    @Builder
     public TestDataLoader(Connection connection, String dataPath, OperatingMode operatingMode) {
+        if (connection == null) {
+            throw new TestDataLoaderException("Connection cannot be null.");
+        }
         this.connection = connection;
-        this.dataPath = dataPath;
-        this.operatingMode = operatingMode;
+
+        if (dataPath == null) {
+            this.dataPath = DEFAULT_DATA_PATH;
+        } else {
+            this.dataPath = dataPath;
+        }
+
+        if (operatingMode == null) {
+            this.operatingMode = OperatingMode.H2_BUILT_IN;
+        } else {
+            this.operatingMode = operatingMode;
+        }
 
         LinkedHashMap<String, Path> orderedFiles = getOrderedListOfFiles(this.dataPath);
         this.tableSqls = generateTableSqls(orderedFiles, this.operatingMode);
-    }
-
-    /**
-     * This constructor assumes that the provided connection is to an H2 database.
-     *
-     * @param connection: Expects H2 connection.
-     * @param dataPath: Expects the path to point to a directory.
-     */
-    public TestDataLoader(Connection connection, String dataPath) {
-        this(connection, dataPath, OperatingMode.H2_BUILT_IN);
     }
 
     /**
@@ -64,7 +70,7 @@ public class TestDataLoader {
      * @param connection: Expects H2 connection.
      */
     public TestDataLoader(Connection connection) {
-        this(connection, DEFAULT_DATA_PATH);
+        this(connection, DEFAULT_DATA_PATH, OperatingMode.H2_BUILT_IN);
     }
 
     /**
