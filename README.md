@@ -116,6 +116,7 @@ client_id, display_name, some_type, created_by, created_at, modified_by, modifie
 ```
 The key here is wrapping the SQL in `__sql__` strings. The column is assumed to be of a
 string/varchar type and is processed by removing the `__sql__` markers.
+This mode also allows some DB-valid, but CSV-not-valid values, like NULL to a timestamp field! (where H2_BUILT_IN fails.)
 
 This mode can be used with any database, H2 or otherwise. But, getting the SQL right may seem a bit tricky,
 especially with quotes in them.
