@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -168,5 +169,20 @@ class TestDataLoaderTest extends TestHelper {
         String actual = runQueryForSelectedStr("select json_col as selected_str from fourth_table;");
         assertAll(() -> assertEquals("\"{ \\\"region\\\":  \\\"us-east-2\\\" }\"",
                 actual));
+    }
+
+    @Test
+    void ensureDefaultsStick() throws NoSuchFieldException {
+        TestDataLoader dataLoader = TestDataLoader.builder().connection(connection).build();
+        Field dataPath = TestDataLoader.class.getDeclaredField("dataPath");
+        dataPath.setAccessible(true);
+
+        Field operatingMode = TestDataLoader.class.getDeclaredField("operatingMode");
+        operatingMode.setAccessible(true);
+
+        assertAll(
+                () -> assertEquals("src/test/resources/data", dataPath.get(dataLoader)),
+                () -> assertEquals(OperatingMode.H2_BUILT_IN, operatingMode.get(dataLoader))
+        );
     }
 }
