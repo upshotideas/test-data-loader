@@ -36,4 +36,11 @@ public class TestHelper {
                 Arguments.of("src/test/resources/data/customread", OperatingMode.CUSTOM)
         );
     }
+
+    protected static Stream<Arguments> paramsNoSequenceProvider() {
+        return Stream.of(
+                Arguments.of("src/test/resources/data-no-sequence/h2csvread", OperatingMode.H2_BUILT_IN),
+                Arguments.of("src/test/resources/data-no-sequence/customread", OperatingMode.CUSTOM)
+        );
+    }
 }

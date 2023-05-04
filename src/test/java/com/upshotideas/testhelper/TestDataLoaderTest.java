@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -184,5 +185,65 @@ class TestDataLoaderTest extends TestHelper {
                 () -> assertEquals("src/test/resources/data", dataPath.get(dataLoader)),
                 () -> assertEquals(OperatingMode.H2_BUILT_IN, operatingMode.get(dataLoader))
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldClearAndReloadTables_whenReloadIsInvoked(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = TestDataLoader.builder()
+                .connection(connection).dataPath(dataPath)
+                .operatingMode(operatingMode).build();
+
+        String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
+                "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
+        try(Statement statement = this.connection.createStatement();) {
+            int i = statement.executeUpdate(sqlStmt);
+        }
+        assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
+
+        dataLoader.reloadTables();
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
+    }
+
+    @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldClearAndReloadSelectedTables_whenReloadIsInvokedWithSelectedTables(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = TestDataLoader.builder()
+                .connection(connection).dataPath(dataPath)
+                .operatingMode(operatingMode).build();
+
+        String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
+                "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
+        try(Statement statement = this.connection.createStatement();) {
+            int i = statement.executeUpdate(sqlStmt);
+        }
+        assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
+
+        dataLoader.reloadTables(Arrays.asList("second_table"));
+        assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
+    }
+
+    @ParameterizedTest
+    @MethodSource("paramsNoSequenceProvider")
+    void shouldLoadFileInWhateverOrder_WhenFilesMissSequenceNumber(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+
+        assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
+
+        dataLoader.loadTables();
+
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
     }
 }
