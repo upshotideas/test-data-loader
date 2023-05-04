@@ -232,6 +232,28 @@ class TestDataLoaderTest extends TestHelper {
     }
 
     @ParameterizedTest
+    @MethodSource("paramsProvider")
+    void shouldClearAndReloadTables_whenReloadIsInvokedWithEmptyArray(String dataPath, OperatingMode operatingMode) throws SQLException {
+        TestDataLoader dataLoader = TestDataLoader.builder()
+                .connection(connection).dataPath(dataPath)
+                .operatingMode(operatingMode).build();
+
+        String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
+                "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
+        try(Statement statement = this.connection.createStatement();) {
+            int i = statement.executeUpdate(sqlStmt);
+        }
+        assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
+
+        dataLoader.reloadTables(Arrays.asList());
+        assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
+                () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
+                () -> assertEquals(0, runQueryForCount("select count(0) as count from third_table;")));
+    }
+
+    @ParameterizedTest
     @MethodSource("paramsNoSequenceProvider")
     void shouldLoadFileInWhateverOrder_WhenFilesMissSequenceNumber(String dataPath, OperatingMode operatingMode) throws SQLException {
         TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
