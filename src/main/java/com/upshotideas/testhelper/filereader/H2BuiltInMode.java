@@ -4,18 +4,12 @@ import com.upshotideas.testhelper.CopyOperation;
 import com.upshotideas.testhelper.Functions;
 import com.upshotideas.testhelper.TableOperationTuple;
 import com.upshotideas.testhelper.TestDataLoaderException;
-import org.postgresql.copy.CopyManager;
-import org.postgresql.core.BaseConnection;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -23,7 +17,7 @@ import java.util.stream.Stream;
 /**
  * This class loads csv data into an H2 database. It does not yet check if the connection provided is to an instance of
  * H2, just assumes that it is, if something is using this mode.
- *
+ * <p>
  * It uses the csvread function from H2. It can only import the data as-is, if it exists in a valid csv format.
  * It assumes that the provided CSV has headers.
  */

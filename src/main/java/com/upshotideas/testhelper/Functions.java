@@ -25,6 +25,7 @@ public class Functions {
      * Uses the operating mode to convert the identified list of files into insert statements.
      */
     private static final Pattern FILE_ORDER = Pattern.compile("^(\\d+)\\.");
+
     static Map<String, CopyOperation> generateTableSqls(LinkedHashMap<String, Path> orderedFiles, OperatingMode operatingMode) {
         IOperatingMode operatingModeHandler = OperatingModeFactory.getOperatingModeHandler(operatingMode);
         return orderedFiles.entrySet().stream().map((Map.Entry<String, Path> e) -> {

@@ -17,6 +17,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * This class loads CSV data into postgres DB, using postgres's \COPY command. Note that this is not equivalent to
+ * the COPY command, but the \COPY command instead; equivalent to using \COPY on a psql client.
+ * <p>
+ * This mode functions almost similar to the H2 mode, except the difference in exhibited behaviour,
+ * like in JSON handling.
+ * <p>
+ * This mode can be used only when postgres driver is on the classpath.
+ */
 public class PostgreSQLBuiltInMode implements IOperatingMode {
     @Override
     public TableOperationTuple generateTableSql(Map.Entry<String, Path> e) throws IOException {
@@ -34,7 +43,7 @@ public class PostgreSQLBuiltInMode implements IOperatingMode {
             try {
                 new CopyManager((BaseConnection) connection)
                         .copyIn("COPY " + tableName + "(" + columns +
-                                ") from STDIN (FORMAT csv, HEADER);",
+                                        ") from STDIN (FORMAT csv, HEADER);",
                                 new BufferedReader(new FileReader(value.toFile())));
             } catch (SQLException | IOException e) {
                 throw new TestDataLoaderException(e);

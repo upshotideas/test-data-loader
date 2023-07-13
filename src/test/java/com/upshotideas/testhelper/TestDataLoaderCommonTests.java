@@ -19,7 +19,7 @@ import static com.upshotideas.testhelper.Functions.prefixNumericComparatorGenera
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestDataLoaderTest extends TestHelper {
+abstract class TestDataLoaderCommonTests extends TestHelper {
 
     @ParameterizedTest
     @MethodSource("paramsProvider")
@@ -149,7 +149,7 @@ public class TestDataLoaderTest extends TestHelper {
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try(Statement statement = connection.createStatement();) {
+        try (Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
         assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
@@ -171,7 +171,7 @@ public class TestDataLoaderTest extends TestHelper {
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try(Statement statement = connection.createStatement();) {
+        try (Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
         assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
@@ -193,7 +193,7 @@ public class TestDataLoaderTest extends TestHelper {
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try(Statement statement = connection.createStatement();) {
+        try (Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
         assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),

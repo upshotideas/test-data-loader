@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This mode allows for some dynamic components to the CSV. One can embed SQL snippets in between __sql__ tags and 
+ * This mode allows for some dynamic components to the CSV. One can embed SQL snippets in between __sql__ tags and
  * the generated insert statements will be such that they allow for executing these sqls, enabling some data to be
  * dynamic.
  * <p/>

@@ -37,8 +37,9 @@ public class TestDataLoader {
      * <p></p>
      * If you are using H2 and the data files are in standard location, check other simpler constructors.
      * <p></p>
-     * @param connection: Expects an active connection to any DB, as long at is supports the regular insert statements!
-     * @param dataPath: Expects the path to point to a directory.
+     *
+     * @param connection:    Expects an active connection to any DB, as long at is supports the regular insert statements!
+     * @param dataPath:      Expects the path to point to a directory.
      * @param operatingMode: Check ${@link OperatingMode} for available modes and their details.
      */
     @Builder

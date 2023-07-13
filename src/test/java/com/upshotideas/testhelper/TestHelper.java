@@ -1,14 +1,11 @@
 package com.upshotideas.testhelper;
 
-import org.junit.jupiter.params.provider.Arguments;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.stream.Stream;
 
-public class TestHelper {
+abstract public class TestHelper {
     protected Connection connection;
 
     protected int runQueryForCount(String sqlStmt) throws SQLException {
@@ -28,19 +25,5 @@ public class TestHelper {
         try (ResultSet resultSet = runQuery(sqlStmt);) {
             return resultSet.getString("selected_str");
         }
-    }
-
-    protected static Stream<Arguments> paramsProvider() {
-        return Stream.of(
-                Arguments.of("src/test/resources/data/h2csvread", OperatingMode.H2_BUILT_IN),
-                Arguments.of("src/test/resources/data/customread", OperatingMode.CUSTOM)
-        );
-    }
-
-    protected static Stream<Arguments> paramsNoSequenceProvider() {
-        return Stream.of(
-                Arguments.of("src/test/resources/data-no-sequence/h2csvread", OperatingMode.H2_BUILT_IN),
-                Arguments.of("src/test/resources/data-no-sequence/customread", OperatingMode.CUSTOM)
-        );
     }
 }
