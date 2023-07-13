@@ -13,6 +13,7 @@ public class TestDataLoaderException extends RuntimeException {
 
     /**
      * Base constructor with message string
+     * @param message
      */
     public TestDataLoaderException(String message) {
         super(message);
