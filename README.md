@@ -4,13 +4,14 @@ your end-to-end test case scenarios.
 
 # Features
 1. loading data to a given DB.
-2. Two operation modes: H2 and custom.
-3. Native support for H2 database, which is common for test environments. (H2 mode)
-4. Ability to load calculated fields, like `now()` into the db (custom mode)
-5. Simple APIs to load, clear or reload data.
-6. Load/clear or reload all or selected tables.
-7. Ability to define order of tables to load.
-8. Can be used with any database that works with `java.sql.Connection`.
+2. Three operation modes: PostgreSQL, H2 and custom.
+3. Native support for H2 database, which is common for test environments. (H2_BUILT_IN mode)
+4. Native support for PostrgreSQL \Copy command (POSTGRESQL_COPY mode)
+5. Ability to load calculated fields, like `now()` into the db (CUSTOM mode)
+6. Simple APIs to load, clear or reload data.
+7. Load/clear or reload all or selected tables.
+8. Ability to define order of tables to load.
+9. Can be used with any database that works with `java.sql.Connection`.
 
 # How to use
 ## Add dependency
@@ -18,7 +19,7 @@ your end-to-end test case scenarios.
     <dependency>
         <groupId>com.upshotideas</groupId>
         <artifactId>test-data-loader</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.3</version>
     </dependency>
 ```
 ## Create CSV files
@@ -32,7 +33,7 @@ Put your CSV files in `src/test/resources/data`. Ensure that:
 
 ![data-location-screenshot.png](docs/data-location-screenshot.png)
 
-## Contruct and use the TestDataLoader
+## Construct and use the TestDataLoader
 Assuming SpringBoot, the `src/test/resources/application.yml` would look like:
 ```yaml
 spring:
@@ -40,6 +41,7 @@ spring:
     url: jdbc:h2:mem:test;MODE=PostgreSQL
     platform: h2
 ```
+(Or you can use Postgres via test-containers' JDBC or Junit support!)
 
 And a test class, ideally a parent test class, would look like:
 ```java
@@ -104,8 +106,19 @@ client_id, display_name, some_type, created_by, created_at, modified_by, modifie
 1, "some name", 'some type', "user", "2023-02-27", 'user', "2023-02-27"
 ```
 This mode is directly using H2's `readcsv` function, and therefor is only available when using H2 database.
-If you are using any other database, like PostgreSQL, via docker for testing, you would have to use the custom mode.
-This mode will copy the CSV file as is, with no dymaic contents.
+If you are using PostgreSQL, via docker/test-containers for testing, please check `POSTGRESQL_COPY` mode.
+If you are using any other database, you would have to use the `CUSTOM` mode.
+
+This mode will copy the CSV file as is, and does not support dynamic resolution of data like `CUSTOM` mode.
+
+### POSTGRESQL_COPY mode
+This mode accepts standard CSV files, similar to the `H2_BUILT_IN` mode. It relies on the PostgreSQL DB's capability
+to read data from STDIN, which can contain CSV data. The typical file would look exactly as described above.
+
+This mode is directly using Postgres client's `CopyManager` API, which is equivalent to the `\COPY` of the psql client. 
+Therefore, this mode can only be used when Postgres DB is being used in application testing.
+
+This mode will copy the CSV file as is, and does not support dynamic resolution of data like `CUSTOM` mode.
 
 ### Custom mode
 Custom mode allows for using dynamic sql components to be used in the CSV, so they resolve when loading into
