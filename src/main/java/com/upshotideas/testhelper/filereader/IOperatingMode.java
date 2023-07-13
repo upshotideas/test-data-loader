@@ -1,5 +1,8 @@
 package com.upshotideas.testhelper.filereader;
 
+import com.upshotideas.testhelper.CopyOperation;
+import com.upshotideas.testhelper.TableOperationTuple;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -19,5 +22,5 @@ public interface IOperatingMode {
      * @throws IOException If any issues happen when trying to read the file
      */
 
-    public List<String> generateTableSql(Map.Entry<String, Path> mapEntry) throws IOException;
+    public TableOperationTuple generateTableSql(Map.Entry<String, Path> mapEntry) throws IOException;
 }

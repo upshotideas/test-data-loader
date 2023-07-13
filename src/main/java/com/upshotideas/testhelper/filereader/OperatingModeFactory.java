@@ -16,6 +16,8 @@ public class OperatingModeFactory {
         switch (mode) {
             case CUSTOM:
                 return new CustomCSVReaderMode();
+            case POSTGRESQL_COPY:
+                return new PostgreSQLBuiltInMode();
             case H2_BUILT_IN:
             default:
                 return new H2BuiltInMode();

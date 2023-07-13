@@ -25,7 +25,7 @@ public class Functions {
      * Uses the operating mode to convert the identified list of files into insert statements.
      */
     private static final Pattern FILE_ORDER = Pattern.compile("^(\\d+)\\.");
-    static Map<String, String> generateTableSqls(LinkedHashMap<String, Path> orderedFiles, OperatingMode operatingMode) {
+    static Map<String, CopyOperation> generateTableSqls(LinkedHashMap<String, Path> orderedFiles, OperatingMode operatingMode) {
         IOperatingMode operatingModeHandler = OperatingModeFactory.getOperatingModeHandler(operatingMode);
         return orderedFiles.entrySet().stream().map((Map.Entry<String, Path> e) -> {
             try {
@@ -34,8 +34,8 @@ public class Functions {
                 throw new TestDataLoaderException(ex);
             }
         }).collect(Collectors.toMap(
-                kv -> kv.get(0),
-                kv -> kv.get(1),
+                kv -> kv.tableName,
+                kv -> kv.operation,
                 (k1, k2) -> k1,
                 LinkedHashMap::new
         ));
@@ -68,6 +68,12 @@ public class Functions {
             } else {
                 return Integer.MAX_VALUE;
             }
+        });
+    }
+
+    public static TableOperationTuple getNoopOperation(String tableName) {
+        return new TableOperationTuple(tableName, connection -> {
+            // noop
         });
     }
 

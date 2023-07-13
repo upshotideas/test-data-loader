@@ -5,6 +5,7 @@ import lombok.Builder;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -27,7 +28,7 @@ public class TestDataLoader {
     private String dataPath;
     private OperatingMode operatingMode;
 
-    private Map<String, String> tableSqls = Collections.emptyMap();
+    private Map<String, CopyOperation> tableSqls = Collections.emptyMap();
 
     /**
      * Constructs the data loader with given connection, of any DB, unlike that of other constructors.
@@ -81,15 +82,8 @@ public class TestDataLoader {
         loadData(this.tableSqls.entrySet().stream());
     }
 
-    private void loadData(Stream<Map.Entry<String, String>> tables) {
-        tables.forEach(entry -> {
-            try {
-                this.connection.createStatement().executeUpdate(entry.getValue());
-                this.connection.commit();
-            } catch (SQLException e) {
-                throw new TestDataLoaderException(e);
-            }
-        });
+    private void loadData(Stream<Map.Entry<String, CopyOperation>> tables) {
+        tables.forEach(entry -> entry.getValue().copy(connection));
     }
 
     /**
@@ -102,7 +96,7 @@ public class TestDataLoader {
         if (tables.isEmpty()) {
             loadTables();
         } else {
-            Stream<Map.Entry<String, String>> filteredTables = this.tableSqls.entrySet().stream()
+            Stream<Map.Entry<String, CopyOperation>> filteredTables = this.tableSqls.entrySet().stream()
                     .filter(e -> tables.contains(e.getKey()));
             loadData(filteredTables);
         }
@@ -112,16 +106,16 @@ public class TestDataLoader {
      * Clears data from all the tables identified by the files in the data directory
      */
     public void clearTables() {
-        ArrayList<Map.Entry<String, String>> entries = new ArrayList<>(this.tableSqls.entrySet());
+        ArrayList<Map.Entry<String, CopyOperation>> entries = new ArrayList<>(this.tableSqls.entrySet());
         Collections.reverse(entries);
-        Stream<Map.Entry<String, String>> tables = entries.stream();
+        Stream<Map.Entry<String, CopyOperation>> tables = entries.stream();
         clearData(tables);
     }
 
-    private void clearData(Stream<Map.Entry<String, String>> tables) {
+    private void clearData(Stream<Map.Entry<String, CopyOperation>> tables) {
         tables.forEach(entry -> {
-            try {
-                this.connection.createStatement().executeUpdate("delete from " + entry.getKey() + ";");
+            try (Statement statement = this.connection.createStatement()) {
+                statement.executeUpdate("delete from " + entry.getKey() + ";");
                 this.connection.commit();
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);
@@ -138,7 +132,7 @@ public class TestDataLoader {
         if (tables.isEmpty()) {
             clearTables();
         } else {
-            Stream<Map.Entry<String, String>> filteredTables = this.tableSqls.entrySet().stream()
+            Stream<Map.Entry<String, CopyOperation>> filteredTables = this.tableSqls.entrySet().stream()
                     .filter(e -> tables.contains(e.getKey()));
             clearData(filteredTables);
         }

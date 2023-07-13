@@ -1,11 +1,16 @@
 package com.upshotideas.testhelper.filereader;
 
+import com.upshotideas.testhelper.CopyOperation;
+import com.upshotideas.testhelper.Functions;
+import com.upshotideas.testhelper.TableOperationTuple;
+import com.upshotideas.testhelper.TestDataLoaderException;
 import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,14 +25,26 @@ import java.util.stream.Collectors;
  */
 class CustomCSVReaderMode implements IOperatingMode {
     @Override
-    public List<String> generateTableSql(Map.Entry<String, Path> e) throws IOException {
+    public TableOperationTuple generateTableSql(Map.Entry<String, Path> e) throws IOException {
         List<String> fileLines = FileUtils.readLines(e.getValue().toFile(), Charset.defaultCharset());
         if (fileLines.isEmpty()) {
-            return Arrays.asList(e.getKey(), "");
+            return Functions.getNoopOperation(e.getKey());
         }
 
-        String insertStmt = formInsertStatement(e.getKey(), fileLines);
-        return Arrays.asList(e.getKey(), insertStmt);
+        return new TableOperationTuple(e.getKey(), this.generateCopyOperation(e.getKey(), fileLines));
+    }
+
+    private CopyOperation generateCopyOperation(String tableName, List<String> fileLines) {
+        String insertStmt = formInsertStatement(tableName, fileLines);
+
+        return connection -> {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate(insertStmt);
+                connection.commit();
+            } catch (SQLException e) {
+                throw new TestDataLoaderException(e);
+            }
+        };
     }
 
     private static String formInsertStatement(String tableName, List<String> fileLines) {

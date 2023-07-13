@@ -12,5 +12,10 @@ public enum OperatingMode {
     /**
      * CUSTOM mode is implemented by {@link com.upshotideas.testhelper.filereader.CustomCSVReaderMode}
      */
-    CUSTOM
+    CUSTOM,
+
+    /**
+     * POSTGRESQL_COPY is implemeted by {@link com.upshotideas.testhelper.filereader.PostgreSQLBuiltInMode}
+     */
+    POSTGRESQL_COPY
 }
