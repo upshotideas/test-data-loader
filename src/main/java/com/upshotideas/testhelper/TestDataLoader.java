@@ -23,7 +23,7 @@ public class TestDataLoader {
     /**
      * Any jdbc connection to the db in use, preferably h2.
      */
-    private final Connection connection;
+    private final ConnectionSupplier connectionSupplier;
 
     private String dataPath;
     private OperatingMode operatingMode;
@@ -38,16 +38,16 @@ public class TestDataLoader {
      * If you are using H2 and the data files are in standard location, check other simpler constructors.
      * <p></p>
      *
-     * @param connection:    Expects an active connection to any DB, as long at is supports the regular insert statements!
+     * @param connectionSupplier:    Expects an active connection to any DB, as long at is supports the regular insert statements!
      * @param dataPath:      Expects the path to point to a directory.
      * @param operatingMode: Check ${@link OperatingMode} for available modes and their details.
      */
     @Builder
-    public TestDataLoader(Connection connection, String dataPath, OperatingMode operatingMode) {
-        if (connection == null) {
+    public TestDataLoader(ConnectionSupplier connectionSupplier, String dataPath, OperatingMode operatingMode) {
+        if (connectionSupplier == null) {
             throw new TestDataLoaderException("Connection cannot be null.");
         }
-        this.connection = connection;
+        this.connectionSupplier = connectionSupplier;
 
         if (dataPath == null) {
             this.dataPath = DEFAULT_DATA_PATH;
@@ -69,10 +69,10 @@ public class TestDataLoader {
      * This constructor assumes that the data is available at the default location, "src/test/resources/data" and
      * that the connection is to an H2 database.
      *
-     * @param connection: Expects H2 connection.
+     * @param connectionSupplier: Expects H2 connection.
      */
-    public TestDataLoader(Connection connection) {
-        this(connection, DEFAULT_DATA_PATH, OperatingMode.H2_BUILT_IN);
+    public TestDataLoader(ConnectionSupplier connectionSupplier) {
+        this(connectionSupplier, DEFAULT_DATA_PATH, OperatingMode.H2_BUILT_IN);
     }
 
     /**
@@ -84,7 +84,7 @@ public class TestDataLoader {
     }
 
     private void loadData(Stream<Map.Entry<String, CopyOperation>> tables) {
-        tables.forEach(entry -> entry.getValue().copy(connection));
+        tables.forEach(entry -> entry.getValue().copy(connectionSupplier));
     }
 
     /**
@@ -115,9 +115,10 @@ public class TestDataLoader {
 
     private void clearData(Stream<Map.Entry<String, CopyOperation>> tables) {
         tables.forEach(entry -> {
-            try (Statement statement = this.connection.createStatement()) {
+            try (Connection connection = this.connectionSupplier.getConnection();
+                 Statement statement = connection.createStatement()) {
                 statement.executeUpdate("delete from " + entry.getKey() + ";");
-                this.connection.commit();
+                Functions.commitConnection(connection);
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);
             }

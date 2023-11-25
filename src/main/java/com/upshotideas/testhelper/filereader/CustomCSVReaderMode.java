@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
@@ -37,10 +38,11 @@ class CustomCSVReaderMode implements IOperatingMode {
     private CopyOperation generateCopyOperation(String tableName, List<String> fileLines) {
         String insertStmt = formInsertStatement(tableName, fileLines);
 
-        return connection -> {
-            try (Statement statement = connection.createStatement()) {
+        return connectionSupplier -> {
+            try (Connection connection = connectionSupplier.getConnection();
+                 Statement statement = connection.createStatement()) {
                 statement.executeUpdate(insertStmt);
-                connection.commit();
+                Functions.commitConnection(connection);
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);
             }

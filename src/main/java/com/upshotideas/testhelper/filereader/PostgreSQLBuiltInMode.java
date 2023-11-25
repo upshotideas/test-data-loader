@@ -6,12 +6,14 @@ import com.upshotideas.testhelper.TableOperationTuple;
 import com.upshotideas.testhelper.TestDataLoaderException;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
+import org.postgresql.jdbc.PgConnection;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
@@ -39,9 +41,9 @@ public class PostgreSQLBuiltInMode implements IOperatingMode {
     }
 
     private CopyOperation generateCopyOperation(String columns, String tableName, Path value) {
-        return connection -> {
-            try {
-                new CopyManager((BaseConnection) connection)
+        return connectionSupplier -> {
+            try (Connection connection = connectionSupplier.getConnection()) {
+                new CopyManager(connection.unwrap(PgConnection.class))
                         .copyIn("COPY " + tableName + "(" + columns +
                                         ") from STDIN (FORMAT csv, HEADER);",
                                 new BufferedReader(new FileReader(value.toFile())));

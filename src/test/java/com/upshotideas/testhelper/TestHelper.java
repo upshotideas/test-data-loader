@@ -1,12 +1,36 @@
 package com.upshotideas.testhelper;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 abstract public class TestHelper {
-    protected Connection connection;
+    private HikariDataSource dataSource;
+    protected ConnectionSupplier connectionSupplier;
+
+    protected void setupDb(String url, String userName, String password) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setUsername(userName);
+        config.setPassword(password);
+        this.dataSource = new HikariDataSource(config);
+
+        this.connectionSupplier = () -> {
+            try {
+                return dataSource.getConnection();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    protected void tearDownDb() {
+        this.dataSource.close();
+    }
 
     protected int runQueryForCount(String sqlStmt) throws SQLException {
         try (ResultSet resultSet = runQuery(sqlStmt);) {
@@ -15,7 +39,7 @@ abstract public class TestHelper {
     }
 
     protected ResultSet runQuery(String sqlStmt) throws SQLException {
-        Statement statement = this.connection.createStatement();
+        Statement statement = this.connectionSupplier.getConnection().createStatement();
         ResultSet resultSet = statement.executeQuery(sqlStmt);
         resultSet.next();
         return resultSet;

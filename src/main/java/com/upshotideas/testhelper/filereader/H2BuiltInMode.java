@@ -8,6 +8,7 @@ import com.upshotideas.testhelper.TestDataLoaderException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
@@ -34,11 +35,12 @@ class H2BuiltInMode implements IOperatingMode {
     }
 
     private CopyOperation generateCopyOperation(String columns, String tableName, Path value) {
-        return connection -> {
-            try (Statement statement = connection.createStatement()) {
+        return connectionSupplier -> {
+            try (Connection connection = connectionSupplier.getConnection();
+                 Statement statement = connection.createStatement()) {
                 statement.executeUpdate("insert into " + tableName + "(" + columns +
                         ") select * from CSVREAD('" + value + "',null,'charset=UTF-8');");
-                connection.commit();
+                Functions.commitConnection(connection);
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);
             }

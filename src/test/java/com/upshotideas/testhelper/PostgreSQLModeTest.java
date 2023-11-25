@@ -1,5 +1,8 @@
 package com.upshotideas.testhelper;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -8,7 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.sql.DriverManager;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.stream.Stream;
 
@@ -17,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 public class PostgreSQLModeTest extends TestDataLoaderCommonTests {
-
     @Container
     private PostgreSQLContainer postgresqlContainer = new PostgreSQLContainer<>("postgres:15.2-alpine")
             .withDatabaseName("test_data_loader")
@@ -27,18 +29,19 @@ public class PostgreSQLModeTest extends TestDataLoaderCommonTests {
 
     @BeforeEach
     public void setupDb() {
-        try {
-            this.connection = DriverManager.getConnection(postgresqlContainer.getJdbcUrl(), "postgres", "root");
-            this.connection.setAutoCommit(false);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        super.setupDb(postgresqlContainer.getJdbcUrl(), "postgres", "root");
     }
+
+    @AfterEach
+    public void tearDownDb() {
+        super.tearDownDb();
+    }
+
 
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldInsertJSONProperly(String dataPath, OperatingMode operatingMode) throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
         dataLoader.loadTables();
 
         String actual = runQueryForSelectedStr("select json_col as selected_str from fourth_table;");
