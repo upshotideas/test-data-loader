@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.upshotideas.testhelper.Functions.generateTableSqls;
@@ -23,12 +25,12 @@ public class TestDataLoader {
     /**
      * Any jdbc connection to the db in use, preferably h2.
      */
-    private final Connection connection;
+    private final Supplier<Connection> connectionSupplier;
 
     private String dataPath;
     private OperatingMode operatingMode;
 
-    private Map<String, CopyOperation> tableSqls = Collections.emptyMap();
+    private Map<String, Consumer<Supplier<Connection>>> tableSqls = Collections.emptyMap();
 
     /**
      * Constructs the data loader with given connection, of any DB, unlike that of other constructors.
@@ -38,16 +40,16 @@ public class TestDataLoader {
      * If you are using H2 and the data files are in standard location, check other simpler constructors.
      * <p></p>
      *
-     * @param connection:    Expects an active connection to any DB, as long at is supports the regular insert statements!
+     * @param connectionSupplier:    Expects an active connection to any DB, as long at is supports the regular insert statements!
      * @param dataPath:      Expects the path to point to a directory.
      * @param operatingMode: Check ${@link OperatingMode} for available modes and their details.
      */
     @Builder
-    public TestDataLoader(Connection connection, String dataPath, OperatingMode operatingMode) {
-        if (connection == null) {
+    public TestDataLoader(Supplier<Connection> connectionSupplier, String dataPath, OperatingMode operatingMode) {
+        if (connectionSupplier == null) {
             throw new TestDataLoaderException("Connection cannot be null.");
         }
-        this.connection = connection;
+        this.connectionSupplier = connectionSupplier;
 
         if (dataPath == null) {
             this.dataPath = DEFAULT_DATA_PATH;
@@ -69,10 +71,10 @@ public class TestDataLoader {
      * This constructor assumes that the data is available at the default location, "src/test/resources/data" and
      * that the connection is to an H2 database.
      *
-     * @param connection: Expects H2 connection.
+     * @param connectionSupplier: Expects H2 connection.
      */
-    public TestDataLoader(Connection connection) {
-        this(connection, DEFAULT_DATA_PATH, OperatingMode.H2_BUILT_IN);
+    public TestDataLoader(Supplier<Connection> connectionSupplier) {
+        this(connectionSupplier, DEFAULT_DATA_PATH, OperatingMode.H2_BUILT_IN);
     }
 
     /**
@@ -83,8 +85,8 @@ public class TestDataLoader {
         loadData(this.tableSqls.entrySet().stream());
     }
 
-    private void loadData(Stream<Map.Entry<String, CopyOperation>> tables) {
-        tables.forEach(entry -> entry.getValue().copy(connection));
+    private void loadData(Stream<Map.Entry<String, Consumer<Supplier<Connection>>>> tables) {
+        tables.forEach(entry -> entry.getValue().accept(connectionSupplier));
     }
 
     /**
@@ -97,7 +99,7 @@ public class TestDataLoader {
         if (tables.isEmpty()) {
             loadTables();
         } else {
-            Stream<Map.Entry<String, CopyOperation>> filteredTables = this.tableSqls.entrySet().stream()
+            Stream<Map.Entry<String, Consumer<Supplier<Connection>>>> filteredTables = this.tableSqls.entrySet().stream()
                     .filter(e -> tables.contains(e.getKey()));
             loadData(filteredTables);
         }
@@ -107,17 +109,18 @@ public class TestDataLoader {
      * Clears data from all the tables identified by the files in the data directory
      */
     public void clearTables() {
-        ArrayList<Map.Entry<String, CopyOperation>> entries = new ArrayList<>(this.tableSqls.entrySet());
+        ArrayList<Map.Entry<String, Consumer<Supplier<Connection>>>> entries = new ArrayList<>(this.tableSqls.entrySet());
         Collections.reverse(entries);
-        Stream<Map.Entry<String, CopyOperation>> tables = entries.stream();
+        Stream<Map.Entry<String, Consumer<Supplier<Connection>>>> tables = entries.stream();
         clearData(tables);
     }
 
-    private void clearData(Stream<Map.Entry<String, CopyOperation>> tables) {
+    private void clearData(Stream<Map.Entry<String, Consumer<Supplier<Connection>>>> tables) {
         tables.forEach(entry -> {
-            try (Statement statement = this.connection.createStatement()) {
+            try (Connection connection = this.connectionSupplier.get();
+                 Statement statement = connection.createStatement()) {
                 statement.executeUpdate("delete from " + entry.getKey() + ";");
-                this.connection.commit();
+                Functions.commitConnection(connection);
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);
             }
@@ -133,7 +136,7 @@ public class TestDataLoader {
         if (tables.isEmpty()) {
             clearTables();
         } else {
-            Stream<Map.Entry<String, CopyOperation>> filteredTables = this.tableSqls.entrySet().stream()
+            Stream<Map.Entry<String, Consumer<Supplier<Connection>>>> filteredTables = this.tableSqls.entrySet().stream()
                     .filter(e -> tables.contains(e.getKey()));
             clearData(filteredTables);
         }

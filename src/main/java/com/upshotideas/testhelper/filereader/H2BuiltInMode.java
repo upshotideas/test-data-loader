@@ -1,6 +1,5 @@
 package com.upshotideas.testhelper.filereader;
 
-import com.upshotideas.testhelper.CopyOperation;
 import com.upshotideas.testhelper.Functions;
 import com.upshotideas.testhelper.TableOperationTuple;
 import com.upshotideas.testhelper.TestDataLoaderException;
@@ -8,10 +7,13 @@ import com.upshotideas.testhelper.TestDataLoaderException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -33,12 +35,13 @@ class H2BuiltInMode implements IOperatingMode {
         }
     }
 
-    private CopyOperation generateCopyOperation(String columns, String tableName, Path value) {
-        return connection -> {
-            try (Statement statement = connection.createStatement()) {
+    private Consumer<Supplier<Connection>> generateCopyOperation(String columns, String tableName, Path value) {
+        return connectionSupplier -> {
+            try (Connection connection = connectionSupplier.get();
+                 Statement statement = connection.createStatement()) {
                 statement.executeUpdate("insert into " + tableName + "(" + columns +
                         ") select * from CSVREAD('" + value + "',null,'charset=UTF-8');");
-                connection.commit();
+                Functions.commitConnection(connection);
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);
             }

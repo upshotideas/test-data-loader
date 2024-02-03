@@ -13,8 +13,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -26,31 +29,32 @@ class H2ModeTest extends TestDataLoaderCommonTests {
     @BeforeEach
     public void setupDb() {
         try {
-            this.connection = DriverManager.getConnection("jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;", "sa", null);
+            super.setupDb("jdbc:h2:mem:testdb-" + Math.round(Math.random() * 100000) + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1;", "sa", null);
             File createStmtFile = new File(H2ModeTest.class.getClassLoader().getResource("createTables.sql").toURI());
             String createstmt = FileUtils.readFileToString(createStmtFile, Charset.defaultCharset());
 
-            this.connection.createStatement().executeUpdate(createstmt);
-            this.connection.commit();
-        } catch (SQLException | IOException | URISyntaxException e) {
+            try (Connection connection = this.connectionSupplier.get();
+                 Statement statement = connection.createStatement();) {
+                statement.executeUpdate(createstmt);
+                connection.commit();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
     @AfterEach
     public void teardown() {
-        try {
-            this.connection.createStatement().execute("SHUTDOWN");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        super.tearDownDb();
     }
 
 
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldInsertJSONProperly(String dataPath, OperatingMode operatingMode) throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
         dataLoader.loadTables();
 
         String actual = runQueryForSelectedStr("select json_col as selected_str from fourth_table;");

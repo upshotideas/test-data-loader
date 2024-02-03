@@ -1,6 +1,5 @@
 package com.upshotideas.testhelper.filereader;
 
-import com.upshotideas.testhelper.CopyOperation;
 import com.upshotideas.testhelper.Functions;
 import com.upshotideas.testhelper.TableOperationTuple;
 import com.upshotideas.testhelper.TestDataLoaderException;
@@ -9,10 +8,13 @@ import org.apache.commons.io.FileUtils;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -34,13 +36,14 @@ class CustomCSVReaderMode implements IOperatingMode {
         return new TableOperationTuple(e.getKey(), this.generateCopyOperation(e.getKey(), fileLines));
     }
 
-    private CopyOperation generateCopyOperation(String tableName, List<String> fileLines) {
+    private Consumer<Supplier<Connection>> generateCopyOperation(String tableName, List<String> fileLines) {
         String insertStmt = formInsertStatement(tableName, fileLines);
 
-        return connection -> {
-            try (Statement statement = connection.createStatement()) {
+        return connectionSupplier -> {
+            try (Connection connection = connectionSupplier.get();
+                 Statement statement = connection.createStatement()) {
                 statement.executeUpdate(insertStmt);
-                connection.commit();
+                Functions.commitConnection(connection);
             } catch (SQLException e) {
                 throw new TestDataLoaderException(e);
             }

@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
@@ -24,7 +25,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldLoadTheData_WhenDataFileIsFound(String dataPath, OperatingMode operatingMode) throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
 
         assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
@@ -40,7 +41,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldClearTables_WhenInvoked(String dataPath, OperatingMode operatingMode) {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
         dataLoader.loadTables();
         assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
@@ -55,7 +56,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldLoadTheDataForSpecificTables_WhenDataFileIsFoundAndTablesAreDefined(String dataPath, OperatingMode operatingMode) throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
 
         assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
@@ -71,7 +72,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldClearForSpecificTables_WhenITablesAreDefined(String dataPath, OperatingMode operatingMode) {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
         dataLoader.loadTables();
         assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
@@ -86,7 +87,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldLoadTheDataForAllTables_TablesAreAnEmptyList(String dataPath, OperatingMode operatingMode) throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
 
         assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
@@ -102,7 +103,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @ParameterizedTest
     @MethodSource("paramsProvider")
     void shouldClearForSpecificTables_TablesAreAnEmptyList(String dataPath, OperatingMode operatingMode) {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
         dataLoader.loadTables();
         assertAll(() -> assertEquals(1, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(1, runQueryForCount("select count(0) as count from second_table;")),
@@ -127,7 +128,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
 
     @Test
     void ensureDefaultsStick() throws NoSuchFieldException {
-        TestDataLoader dataLoader = TestDataLoader.builder().connection(connection).build();
+        TestDataLoader dataLoader = TestDataLoader.builder().connectionSupplier(connectionSupplier).build();
         Field dataPath = TestDataLoader.class.getDeclaredField("dataPath");
         dataPath.setAccessible(true);
 
@@ -144,12 +145,13 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @MethodSource("paramsProvider")
     void shouldClearAndReloadTables_whenReloadIsInvoked(String dataPath, OperatingMode operatingMode) throws SQLException {
         TestDataLoader dataLoader = TestDataLoader.builder()
-                .connection(connection).dataPath(dataPath)
+                .connectionSupplier(connectionSupplier).dataPath(dataPath)
                 .operatingMode(operatingMode).build();
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try (Statement statement = connection.createStatement();) {
+        try (Connection connection = this.connectionSupplier.get();
+             Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
         assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
@@ -166,12 +168,13 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @MethodSource("paramsProvider")
     void shouldClearAndReloadSelectedTables_whenReloadIsInvokedWithSelectedTables(String dataPath, OperatingMode operatingMode) throws SQLException {
         TestDataLoader dataLoader = TestDataLoader.builder()
-                .connection(connection).dataPath(dataPath)
+                .connectionSupplier(connectionSupplier).dataPath(dataPath)
                 .operatingMode(operatingMode).build();
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try (Statement statement = connection.createStatement();) {
+        try (Connection connection = this.connectionSupplier.get();
+             Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
         assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
@@ -188,12 +191,13 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @MethodSource("paramsProvider")
     void shouldClearAndReloadTables_whenReloadIsInvokedWithEmptyArray(String dataPath, OperatingMode operatingMode) throws SQLException {
         TestDataLoader dataLoader = TestDataLoader.builder()
-                .connection(connection).dataPath(dataPath)
+                .connectionSupplier(connectionSupplier).dataPath(dataPath)
                 .operatingMode(operatingMode).build();
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try (Statement statement = connection.createStatement();) {
+        try (Connection connection = this.connectionSupplier.get();
+             Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
         assertAll(() -> assertEquals(2, runQueryForCount("select count(0) as count from client;")),
@@ -209,7 +213,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
     @ParameterizedTest
     @MethodSource("paramsNoSequenceProvider")
     void shouldLoadFileInWhateverOrder_WhenFilesMissSequenceNumber(String dataPath, OperatingMode operatingMode) throws SQLException {
-        TestDataLoader dataLoader = new TestDataLoader(connection, dataPath, operatingMode);
+        TestDataLoader dataLoader = new TestDataLoader(connectionSupplier, dataPath, operatingMode);
 
         assertAll(() -> assertEquals(0, runQueryForCount("select count(0) as count from client;")),
                 () -> assertEquals(0, runQueryForCount("select count(0) as count from second_table;")),
