@@ -19,7 +19,7 @@ your end-to-end test case scenarios.
     <dependency>
         <groupId>com.upshotideas</groupId>
         <artifactId>test-data-loader</artifactId>
-        <version>0.0.3</version>
+        <version>0.0.5</version>
     </dependency>
 ```
 ## Create CSV files
@@ -54,7 +54,7 @@ public class ExampleTest {
 
    @PostConstruct
    public void setUpClass() {
-      dataLoader = new TestDataLoader(DataSourceUtils.getConnection(dataSource));
+      dataLoader = new TestDataLoader(() -> DataSourceUtils.getConnection(dataSource));
    }
 
    @BeforeEach
@@ -78,7 +78,7 @@ class ExampleTest(private val dataSource: DataSource) {
 
     @PostConstruct
     fun setUpClass() {
-        dataLoader = TestDataLoader(DataSourceUtils.getConnection(dataSource))
+        dataLoader = TestDataLoader { DataSourceUtils.getConnection(dataSource) }
     }
 
     @BeforeEach
