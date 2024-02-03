@@ -13,6 +13,8 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -28,7 +30,7 @@ public class Functions {
      */
     private static final Pattern FILE_ORDER = Pattern.compile("^(\\d+)\\.");
 
-    static Map<String, CopyOperation> generateTableSqls(LinkedHashMap<String, Path> orderedFiles, OperatingMode operatingMode) {
+    static Map<String, Consumer<Supplier<Connection>>> generateTableSqls(LinkedHashMap<String, Path> orderedFiles, OperatingMode operatingMode) {
         IOperatingMode operatingModeHandler = OperatingModeFactory.getOperatingModeHandler(operatingMode);
         return orderedFiles.entrySet().stream().map((Map.Entry<String, Path> e) -> {
             try {

@@ -1,11 +1,9 @@
 package com.upshotideas.testhelper.filereader;
 
-import com.upshotideas.testhelper.CopyOperation;
 import com.upshotideas.testhelper.Functions;
 import com.upshotideas.testhelper.TableOperationTuple;
 import com.upshotideas.testhelper.TestDataLoaderException;
 import org.postgresql.copy.CopyManager;
-import org.postgresql.core.BaseConnection;
 import org.postgresql.jdbc.PgConnection;
 
 import java.io.BufferedReader;
@@ -17,6 +15,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -40,9 +40,9 @@ public class PostgreSQLBuiltInMode implements IOperatingMode {
         }
     }
 
-    private CopyOperation generateCopyOperation(String columns, String tableName, Path value) {
+    private Consumer<Supplier<Connection>> generateCopyOperation(String columns, String tableName, Path value) {
         return connectionSupplier -> {
-            try (Connection connection = connectionSupplier.getConnection()) {
+            try (Connection connection = connectionSupplier.get()) {
                 new CopyManager(connection.unwrap(PgConnection.class))
                         .copyIn("COPY " + tableName + "(" + columns +
                                         ") from STDIN (FORMAT csv, HEADER);",

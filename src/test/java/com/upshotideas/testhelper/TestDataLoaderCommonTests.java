@@ -150,7 +150,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try (Connection connection = this.connectionSupplier.getConnection();
+        try (Connection connection = this.connectionSupplier.get();
              Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
@@ -173,7 +173,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try (Connection connection = this.connectionSupplier.getConnection();
+        try (Connection connection = this.connectionSupplier.get();
              Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }
@@ -196,7 +196,7 @@ abstract class TestDataLoaderCommonTests extends TestHelper {
 
         String sqlStmt = "insert into client values(98, 'someName2', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');" +
                 "insert into client values(99, 'someName3', 'CREATED', 'nikhil', '2023-02-27', 'nikhil', '2023-02-27');";
-        try (Connection connection = this.connectionSupplier.getConnection();
+        try (Connection connection = this.connectionSupplier.get();
              Statement statement = connection.createStatement();) {
             int i = statement.executeUpdate(sqlStmt);
         }

@@ -33,7 +33,7 @@ class H2ModeTest extends TestDataLoaderCommonTests {
             File createStmtFile = new File(H2ModeTest.class.getClassLoader().getResource("createTables.sql").toURI());
             String createstmt = FileUtils.readFileToString(createStmtFile, Charset.defaultCharset());
 
-            try (Connection connection = this.connectionSupplier.getConnection();
+            try (Connection connection = this.connectionSupplier.get();
                  Statement statement = connection.createStatement();) {
                 statement.executeUpdate(createstmt);
                 connection.commit();

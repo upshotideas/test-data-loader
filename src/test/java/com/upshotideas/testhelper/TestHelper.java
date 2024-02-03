@@ -7,10 +7,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.function.Supplier;
 
 abstract public class TestHelper {
     private HikariDataSource dataSource;
-    protected ConnectionSupplier connectionSupplier;
+    protected Supplier<Connection> connectionSupplier;
 
     protected void setupDb(String url, String userName, String password) {
         HikariConfig config = new HikariConfig();
@@ -33,20 +34,23 @@ abstract public class TestHelper {
     }
 
     protected int runQueryForCount(String sqlStmt) throws SQLException {
-        try (ResultSet resultSet = runQuery(sqlStmt);) {
+        try (ResultSet resultSet = runQuery(sqlStmt, getStatement());) {
             return resultSet.getInt("count");
         }
     }
 
-    protected ResultSet runQuery(String sqlStmt) throws SQLException {
-        Statement statement = this.connectionSupplier.getConnection().createStatement();
+    protected ResultSet runQuery(String sqlStmt, Statement statement) throws SQLException {
         ResultSet resultSet = statement.executeQuery(sqlStmt);
         resultSet.next();
         return resultSet;
     }
 
+    private Statement getStatement() throws SQLException {
+        return this.connectionSupplier.get().createStatement();
+    }
+
     protected String runQueryForSelectedStr(String sqlStmt) throws SQLException {
-        try (ResultSet resultSet = runQuery(sqlStmt);) {
+        try (ResultSet resultSet = runQuery(sqlStmt, getStatement());) {
             return resultSet.getString("selected_str");
         }
     }
