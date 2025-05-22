@@ -34,7 +34,9 @@ abstract public class TestHelper {
     }
 
     protected int runQueryForCount(String sqlStmt) throws SQLException {
-        try (ResultSet resultSet = runQuery(sqlStmt, getStatement());) {
+        try (Connection connection = this.connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = runQuery(sqlStmt, statement)) {
             return resultSet.getInt("count");
         }
     }
@@ -45,12 +47,10 @@ abstract public class TestHelper {
         return resultSet;
     }
 
-    private Statement getStatement() throws SQLException {
-        return this.connectionSupplier.get().createStatement();
-    }
-
     protected String runQueryForSelectedStr(String sqlStmt) throws SQLException {
-        try (ResultSet resultSet = runQuery(sqlStmt, getStatement());) {
+        try (Connection connection = this.connectionSupplier.get();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = runQuery(sqlStmt, statement)) {
             return resultSet.getString("selected_str");
         }
     }

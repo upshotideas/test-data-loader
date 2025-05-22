@@ -7,4 +7,4 @@ build:
 	./mvnw clean install
 
 publish-central:
-	./mvnw clean deploy -P ossrh
+	./mvnw -e clean deploy -P ossrh
